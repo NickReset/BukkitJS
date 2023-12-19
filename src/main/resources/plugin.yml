@@ -1,0 +1,5 @@
+name: BukkitJS
+version: '${project.version}'
+main: social.nickrest.bukkitjs.BukkitJS
+api-version: '1.20'
+load: STARTUP
