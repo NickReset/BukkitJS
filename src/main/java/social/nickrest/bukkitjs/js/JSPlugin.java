@@ -2,13 +2,10 @@ package social.nickrest.bukkitjs.js;
 
 import lombok.Getter;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.plugin.EventExecutor;
 import org.graalvm.polyglot.Value;
 import social.nickrest.bukkitjs.BukkitJS;
 import social.nickrest.bukkitjs.js.command.JSCommand;
@@ -16,8 +13,8 @@ import social.nickrest.bukkitjs.js.command.JSCommandBuilder;
 import social.nickrest.bukkitjs.js.command.JSCommandExecutor;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.List;
 
 @Getter
 public class JSPlugin {
@@ -104,11 +101,25 @@ public class JSPlugin {
             }
 
             command.unregister(map);
+
             command.setFunction(function);
             command.setCommandExecutor(new JSCommandExecutor(function));
+
+            JSCommandBuilder builder = new JSCommandBuilder(this, this.engine, commandName, function);
+
+            try {
+                Method method = builder.getClass().getDeclaredMethod("command", JSCommand.class);
+                method.setAccessible(true);
+
+                method.invoke(builder, command);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return builder;
         }
 
-        return new JSCommandBuilder(this, commandName, function);
+        return new JSCommandBuilder(this, this.engine, commandName, function);
     }
 
     public String getName() {

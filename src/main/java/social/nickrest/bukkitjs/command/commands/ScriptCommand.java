@@ -8,7 +8,7 @@ import social.nickrest.bukkitjs.js.JSPlugin;
 
 import java.util.List;
 
-@CommandInfo(name = "script")
+@CommandInfo(name = "script", permission = "bukkitjs.script")
 public class ScriptCommand extends UpdatedCommandExecutor {
 
     @Override

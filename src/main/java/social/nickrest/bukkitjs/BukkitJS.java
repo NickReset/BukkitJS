@@ -81,7 +81,6 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     public void unregisterCommand(String name) {
         SimpleCommandMap commandMap = this.getCommandMap();
 
@@ -114,11 +113,6 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         }
     }
 
-    public String convertToScriptEvent(String name) {
-        name = name.replace("Event", "");
-        return name.substring(0, 1).toLowerCase() + name.substring(1);
-    }
-
     public static URL locate(Class<?> clazz) {
         try {
             URL resource = clazz.getProtectionDomain().getCodeSource().getLocation();
@@ -130,8 +124,7 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         if (resource == null) throw new IllegalArgumentException("Cannot locate " + clazz.getCanonicalName());
 
         String link = resource.toString();
-        String suffix = clazz.getCanonicalName().replace('.', '/') + ".class";
-
+        String suffix = String.format("%s.class", clazz.getCanonicalName().replace('.', '/'));
         if (link.endsWith(suffix)) {
             String path = link.substring(0, link.length() - suffix.length());
 
@@ -143,15 +136,6 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         }
 
         return null;
-    }
-
-    public static void patch(GraalVMClassLoader loader) {
-        try {
-            loader.addURL(BukkitJS.locate(BukkitJS.class));
-            Thread.currentThread().setContextClassLoader(loader);
-        } catch (Throwable error) {
-            throw new RuntimeException("Failed to load classes!", error);
-        }
     }
 
     public static BukkitJS get() {

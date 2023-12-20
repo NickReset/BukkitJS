@@ -51,6 +51,7 @@ public class JSEngine {
                 "js.nashorn-compat", "true",
                 "js.commonjs-require", "true",
                 "js.ecmascript-version", "2022",
+                "js.commonjs-require", "true",
                 "js.commonjs-require-cwd", new File(BukkitJS.get().getDataFolder(), "./scripts").getAbsolutePath()
         };
 
