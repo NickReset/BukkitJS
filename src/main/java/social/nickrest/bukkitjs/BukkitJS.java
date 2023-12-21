@@ -5,15 +5,20 @@ import com.caoccao.javet.interop.V8Host;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import social.nickrest.bukkitjs.command.commands.PNPMCommand;
 import social.nickrest.bukkitjs.command.commands.ScriptCommand;
 import social.nickrest.bukkitjs.command.updated.CommandManager;
 import social.nickrest.bukkitjs.classloader.BukkitJSClassloader;
 import social.nickrest.bukkitjs.js.JSPlugin;
+import social.nickrest.bukkitjs.js.pnpm.PNPM;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -46,21 +51,10 @@ public final class BukkitJS extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         CommandManager.register(
-                new ScriptCommand()
+                new ScriptCommand(), new PNPMCommand()
         );
 
-        File file = new File(getDataFolder(), "scripts");
-
-        if(!file.exists() && !file.mkdirs()) {
-            getLogger().severe("Failed to create scripts folder!");
-            return;
-        }
-
-        for(File script : Objects.requireNonNull(file.listFiles())) {
-            if (!script.getName().endsWith(".js")) continue;
-
-            plugins.add(new JSPlugin(script));
-        }
+        this.load(null);
     }
 
     @Override
@@ -75,10 +69,6 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public JSPlugin getScript(String name) {
-        return plugins.stream().filter(plugin -> plugin.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
     public SimpleCommandMap getCommandMap() {
@@ -108,6 +98,70 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         }
 
         command.unregister(commandMap);
+    }
+
+    public void load(CommandSender sender) {
+        File file = new File(getDataFolder(), "scripts");
+
+        if(!file.exists() && !file.mkdirs()) {
+            getLogger().severe("Failed to create scripts folder!");
+            return;
+        }
+
+        File scriptsJson = new File(file, "scripts.json");
+
+        try {
+            boolean create = !scriptsJson.exists();
+
+            if (create && !scriptsJson.createNewFile()) {
+                getLogger().severe("Failed to create scripts.json!");
+                return;
+            }
+
+            if(create) {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(scriptsJson));
+                writer.write("[]");
+                writer.close();
+            }
+
+            BufferedReader reader = new BufferedReader(new FileReader(scriptsJson));
+
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+
+            JSONArray array = (JSONArray) new JSONParser().parse(builder.toString());
+
+            for (Object object : array) {
+                String name = (String) object;
+
+                File scriptFile = new File(file, name);
+
+                if(!scriptFile.exists()) {
+                    getLogger().warning("Script file " + name + " does not exist!");
+                    continue;
+                }
+
+                if(getScript(name) != null) {
+                    JSPlugin plugin = getScript(name);
+                    plugin.reload(null);
+                    continue;
+                }
+
+                JSPlugin plugin = new JSPlugin(scriptFile);
+                plugins.add(plugin);
+            }
+
+            reader.close();
+
+            if(sender != null) {
+                sender.sendMessage("§aReloaded scripts! and scripts.json");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void unregisterCommand(Command command) {
@@ -149,6 +203,14 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         }
 
         return null;
+    }
+
+    public PNPM getPNPM() {
+        return ((PNPMCommand) CommandManager.getCommand(PNPMCommand.class)).getPnpm();
+    }
+
+    public JSPlugin getScript(String name) {
+        return plugins.stream().filter(plugin -> plugin.getName().equalsIgnoreCase(name) || plugin.getFile().getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
     public static BukkitJS get() {

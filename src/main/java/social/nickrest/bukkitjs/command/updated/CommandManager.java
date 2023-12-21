@@ -1,6 +1,7 @@
 package social.nickrest.bukkitjs.command.updated;
 
 import lombok.Getter;
+import org.bukkit.command.Command;
 import org.bukkit.command.SimpleCommandMap;
 import social.nickrest.bukkitjs.BukkitJS;
 
@@ -31,6 +32,10 @@ public class CommandManager {
 
     public static void unregister(UpdatedCommandExecutor command) {
         registeredCommands.remove(command.getCommand().getName());
+    }
+
+    public static UpdatedCommandExecutor getCommand(Class<?> clazz) {
+        return registeredCommands.values().stream().filter(command -> command.getClass().equals(clazz)).findFirst().orElse(null);
     }
 
     public static void onDisable() {

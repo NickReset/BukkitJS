@@ -80,7 +80,10 @@ public class JSEngineNode {
 
     public Object eval(String js) {
         try {
-            return this.engine.getV8Runtime().getExecutor(js).executeObject();
+            Object toReturn = this.runtime.getExecutor(js).executeObject();
+
+            this.runtime.await();
+            return toReturn;
         } catch (JavetException e) {
             handleError.accept(e);
         }

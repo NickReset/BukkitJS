@@ -14,47 +14,23 @@ import java.util.List;
 @CommandInfo(name = "script", permission = "bukkitjs.script")
 public class ScriptCommand extends UpdatedCommandExecutor {
 
-    private final PNPM pnpm;
-
-    public ScriptCommand() {
-        File installedAt = new File(BukkitJS.get().getDataFolder(), "\\pnpm");
-
-        if(!installedAt.exists() && !installedAt.mkdirs()) {
-            throw new RuntimeException("Could not create PNPM directory");
-        }
-
-        if(!PNPMDownloader.isInstalled(installedAt)) {
-            PNPMDownloader.installPNPM(installedAt);
-        }
-
-        this.pnpm = new PNPM(new File(BukkitJS.get().getDataFolder(), "\\scripts"), installedAt);
-    }
-
     @Override
     public boolean handle(CommandSender sender, String[] args) {
-        if (args.length <= 1) {
+        if (args.length < 1) {
             sender.sendMessage("§cUsage (Script): /script <reload/disable/enable> <script.js>");
-            sender.sendMessage("§cUsage (PNPM): /script <install/uninstall> <package>");
             return false;
         }
 
         String action = args[0];
 
-        if((action.equalsIgnoreCase("install") || action.equalsIgnoreCase("uninstall")) || (action.equalsIgnoreCase("i") || action.equalsIgnoreCase("un"))) {
-            String pkg = args[1];
+        if(action.equalsIgnoreCase("reload") && args.length == 1) {
+            sender.sendMessage("§aReloading...");
+            BukkitJS.get().load(sender);
+            return false;
+        }
 
-            switch (action.toLowerCase()) {
-                case "i", "install" -> {
-                    sender.sendMessage("§aInstalling " + pkg + "...");
-                    pnpm.install((v) -> sender.sendMessage("§aInstalled " + pkg + "!"), pkg);
-                }
-
-                case "uninstall", "un" -> {
-                    sender.sendMessage("§aUninstalling " + pkg + "...");
-                    pnpm.uninstall((v) -> sender.sendMessage("§cUninstalled " + pkg + "!"), pkg);
-                }
-            }
-
+        if(args.length < 2) {
+            sender.sendMessage("§cUsage (Script): /script <reload/disable/enable> <script.js>");
             return false;
         }
 
@@ -94,17 +70,13 @@ public class ScriptCommand extends UpdatedCommandExecutor {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        List<String> completions = List.of("enable", "disable", "reload", "install", "uninstall");
+        List<String> completions = List.of("enable", "disable", "reload");
 
         if (args.length == 1) {
             return completions;
         }
 
         if(args.length == 2) {
-            if((args[0].equalsIgnoreCase("install") || args[0].equalsIgnoreCase("uninstall")) || (args[0].equalsIgnoreCase("i") || args[0].equalsIgnoreCase("un"))) {
-                return List.of();
-            }
-
             return BukkitJS.get().getPlugins().stream().map(JSPlugin::getName).toList();
         }
 
