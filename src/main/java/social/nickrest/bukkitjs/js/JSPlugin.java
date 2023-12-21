@@ -68,6 +68,7 @@ public class JSPlugin {
         }
 
         this.commands.values().forEach(command -> command.unregister(plugin.getCommandMap()));
+        this.events.clear();
         this.engine.terminate();
 
         plugin.reloadAllCommands();
