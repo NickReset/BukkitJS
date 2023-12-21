@@ -9,7 +9,6 @@ import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import social.nickrest.bukkitjs.command.commands.ScriptCommand;
-import social.nickrest.bukkitjs.command.commands.TestCommand;
 import social.nickrest.bukkitjs.command.updated.CommandManager;
 import social.nickrest.bukkitjs.classloader.BukkitJSClassloader;
 import social.nickrest.bukkitjs.js.JSPlugin;
@@ -47,7 +46,7 @@ public final class BukkitJS extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         CommandManager.register(
-                new ScriptCommand(), new TestCommand()
+                new ScriptCommand()
         );
 
         File file = new File(getDataFolder(), "scripts");
