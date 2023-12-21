@@ -1,27 +1,24 @@
 package social.nickrest.bukkitjs.js.command;
 
-import lombok.Getter;
 import org.bukkit.command.CommandSender;
-import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
+import social.nickrest.bukkitjs.js.node.JSEngineNode;
 
-public class JSCommandExecutor {
-
-    @Getter
-    private Value function;
-
-    public JSCommandExecutor(Value function) {
-        this.function = function;
-    }
+public record JSCommandExecutor(JSEngineNode engine, String source) {
 
     public boolean execute(CommandSender sender, @NotNull String[] args) {
-        Value obj = function.execute(sender, args);
+        try {
+            Object result = engine.runFunctionFromSrc(source, "command", sender, args);
 
-        if(obj.isBoolean()) {
-            return obj.asBoolean();
+            if(result instanceof Boolean) {
+                return (boolean) result;
+            }
+
+            return true;
+        } catch (Exception e) {
+            sender.sendMessage(String.format("§cError in script (command): %s", e.getMessage()));
+            throw new RuntimeException(e);
         }
-
-        return false;
     }
 
 }

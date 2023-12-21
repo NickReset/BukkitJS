@@ -1,11 +1,11 @@
-package social.nickrest.bukkitjs.js.classloader;
+package social.nickrest.bukkitjs.classloader;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 
-public class GraalVMClassLoader extends URLClassLoader {
+public class BukkitJSClassloader extends URLClassLoader {
 
-    public GraalVMClassLoader(ClassLoader parent) {
+    public BukkitJSClassloader(ClassLoader parent) {
         super(new URL[0], parent);
     }
 

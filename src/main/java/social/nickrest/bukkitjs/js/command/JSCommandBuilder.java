@@ -1,41 +1,37 @@
 package social.nickrest.bukkitjs.js.command;
 
+import com.caoccao.javet.annotations.V8Function;
+import com.caoccao.javet.values.reference.V8ValueFunction;
 import lombok.Getter;
-import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
-import org.bukkit.command.TabCompleter;
-import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import social.nickrest.bukkitjs.BukkitJS;
-import social.nickrest.bukkitjs.js.JSEngine;
 import social.nickrest.bukkitjs.js.JSPlugin;
+import social.nickrest.bukkitjs.js.node.JSEngineNode;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 
 @Getter
-@SuppressWarnings({ "unused" }) // setting unused to prevent warning cause this is called by scripts
+@SuppressWarnings({ "unused", "deprecation" }) // setting unused to prevent warning cause this is called by scripts
 public class JSCommandBuilder {
 
     private final HashMap<String, Object> values = new HashMap<>();
 
     private final JSPlugin plugin;
-    private final JSEngine engine;
+    private final JSEngineNode engine;
 
     private final String name;
-
-    private final Value function;
-    private Value tabComplete;
+    private String functionSrc, tabCompleteSrc;
 
     public JSCommand command;
 
-    public JSCommandBuilder(JSPlugin plugin, JSEngine engine, @NotNull String name, Value function) {
+    public JSCommandBuilder(JSPlugin plugin, JSEngineNode engine, @NotNull String name, String functionSrc) {
         this.plugin = plugin;
         this.engine = engine;
         this.name = name;
-        this.function = function;
+        this.functionSrc = functionSrc;
     }
 
     private JSCommandBuilder command(JSCommand command) {
@@ -43,6 +39,7 @@ public class JSCommandBuilder {
         return this;
     }
 
+    @V8Function
     public JSCommandBuilder aliases(String[] aliases) {
         if(command != null) {
             command.setAliases(List.of(aliases));
@@ -53,6 +50,7 @@ public class JSCommandBuilder {
         return this;
     }
 
+    @V8Function
     public JSCommandBuilder description(String description) {
         if(command != null) {
             command.setDescription(description);
@@ -63,6 +61,7 @@ public class JSCommandBuilder {
         return this;
     }
 
+    @V8Function
     public JSCommandBuilder permission(String permission) {
         if(command != null) {
             command.setPermission(permission);
@@ -73,6 +72,7 @@ public class JSCommandBuilder {
         return this;
     }
 
+    @V8Function
     public JSCommandBuilder permissionMessage(String permissionMessage) {
         if(command != null) {
             command.setPermissionMessage(permissionMessage);
@@ -83,6 +83,7 @@ public class JSCommandBuilder {
         return this;
     }
 
+    @V8Function
     public JSCommandBuilder usage(String usage) {
         if(command != null) {
             command.setUsage(usage);
@@ -93,16 +94,22 @@ public class JSCommandBuilder {
         return this;
     }
 
-    public JSCommandBuilder tabComplete(Value value) {
-        if(command != null) {
-            command.setTabComplete(value);
-            return this;
-        }
+    @V8Function
+    public JSCommandBuilder tabComplete(V8ValueFunction function) {
+        try {
+            if (command != null) {
+                command.setTabComplete(function.getSourceCode());
+                return this;
+            }
 
-        this.tabComplete = value;
+            this.tabCompleteSrc = function.getSourceCode();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return this;
     }
 
+    @V8Function
     public JSCommand build() {
         BukkitJS plugin = BukkitJS.get();
         SimpleCommandMap commandMap = plugin.getCommandMap();
@@ -118,7 +125,7 @@ public class JSCommandBuilder {
             return command;
         }
 
-        JSCommand command = new JSCommand(this, name, function, tabComplete, this.plugin, engine);
+        JSCommand command = new JSCommand(this, name, functionSrc, tabCompleteSrc, this.plugin, engine);
 
         for(String key : values.keySet()) {
             Object value = values.get(key);

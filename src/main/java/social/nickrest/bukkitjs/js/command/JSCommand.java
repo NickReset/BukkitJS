@@ -1,15 +1,15 @@
 package social.nickrest.bukkitjs.js.command;
 
+import com.caoccao.javet.values.reference.V8ValueFunction;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import social.nickrest.bukkitjs.js.JSEngine;
 import social.nickrest.bukkitjs.js.JSPlugin;
+import social.nickrest.bukkitjs.js.node.JSEngineNode;
 
 import java.util.List;
 
@@ -21,24 +21,24 @@ public class JSCommand extends Command {
     private JSTabCompleter tabCompleter;
     private JSPlugin plugin;
 
-    private JSEngine engine;
+    private JSEngineNode engine;
 
-    private Value function, tabComplete;
+    private String functionSrc, tabCompleteSrc;
 
-    public JSCommand(JSCommandBuilder commandBuilder, @NotNull String name, Value function, Value tabComplete, JSPlugin plugin, JSEngine engine) {
+    public JSCommand(JSCommandBuilder commandBuilder, @NotNull String name, String functionSrc, String tabCompleteSrc, JSPlugin plugin, JSEngineNode engine) {
         super(name);
 
         this.plugin = plugin;
         this.engine = engine;
         this.commandBuilder = commandBuilder;
-        this.commandExecutor = new JSCommandExecutor(function);
+        this.commandExecutor = new JSCommandExecutor(engine, functionSrc);
 
-        if(tabComplete != null) {
-            this.tabCompleter = new JSTabCompleter(commandBuilder, plugin, tabComplete);
-            this.tabComplete = tabComplete;
+        if(tabCompleteSrc != null) {
+            this.tabCompleter = new JSTabCompleter(commandBuilder, plugin, tabCompleteSrc);
+            this.tabCompleteSrc = tabCompleteSrc;
         }
 
-        this.function = function;
+        this.functionSrc = functionSrc;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class JSCommand extends Command {
             return tabCompleter.tabComplete(sender, args);
         }
 
-        return super.tabComplete(sender, alias, args, location);
+        return List.of();
     }
 
     @Override
@@ -60,8 +60,8 @@ public class JSCommand extends Command {
         return tabComplete(sender, alias, args, null);
     }
 
-    public void setTabComplete(Value tabComplete) {
-        this.tabComplete = tabComplete;
-        this.tabCompleter = new JSTabCompleter(commandBuilder, plugin, tabComplete);
+    public void setTabComplete(String tabCompleteSrc) {
+        this.tabCompleteSrc = tabCompleteSrc;
+        this.tabCompleter = new JSTabCompleter(commandBuilder, plugin, tabCompleteSrc);
     }
 }

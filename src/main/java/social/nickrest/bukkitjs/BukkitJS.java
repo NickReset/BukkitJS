@@ -1,5 +1,7 @@
 package social.nickrest.bukkitjs;
 
+import com.caoccao.javet.enums.JSRuntimeType;
+import com.caoccao.javet.interop.V8Host;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -7,8 +9,9 @@ import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import social.nickrest.bukkitjs.command.commands.ScriptCommand;
+import social.nickrest.bukkitjs.command.commands.TestCommand;
 import social.nickrest.bukkitjs.command.updated.CommandManager;
-import social.nickrest.bukkitjs.js.classloader.GraalVMClassLoader;
+import social.nickrest.bukkitjs.classloader.BukkitJSClassloader;
 import social.nickrest.bukkitjs.js.JSPlugin;
 
 import java.io.File;
@@ -29,10 +32,13 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         DriverManager.getDrivers();
 
         try {
-            GraalVMClassLoader vmClassLoader = new GraalVMClassLoader(this.getClassLoader());
+            BukkitJSClassloader vmClassLoader = new BukkitJSClassloader(this.getClassLoader());
 
             vmClassLoader.addURL(BukkitJS.locate(BukkitJS.class));
             Thread.currentThread().setContextClassLoader(vmClassLoader);
+
+            V8Host v8Host = V8Host.getInstance(JSRuntimeType.Node);
+            v8Host.loadLibrary();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -41,7 +47,7 @@ public final class BukkitJS extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         CommandManager.register(
-                new ScriptCommand()
+                new ScriptCommand(), new TestCommand()
         );
 
         File file = new File(getDataFolder(), "scripts");
@@ -62,6 +68,14 @@ public final class BukkitJS extends JavaPlugin implements Listener {
     public void onDisable() {
         plugins.forEach(JSPlugin::shutdown);
         CommandManager.onDisable();
+
+        try {
+            V8Host v8Host = V8Host.getInstance(JSRuntimeType.Node);
+            v8Host.close();
+            v8Host.unloadLibrary();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public JSPlugin getScript(String name) {
