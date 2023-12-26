@@ -5,32 +5,21 @@ import org.bukkit.command.CommandSender;
 import social.nickrest.bukkitjs.BukkitJS;
 import social.nickrest.bukkitjs.command.updated.UpdatedCommandExecutor;
 import social.nickrest.bukkitjs.command.updated.data.CommandInfo;
-import social.nickrest.bukkitjs.js.pnpm.PNPM;
-import social.nickrest.bukkitjs.js.pnpm.PNPMDownloader;
+import social.nickrest.bukkitjs.js.NPMLog4jLogger;
+import social.nickrest.npm.NPM;
 
 import java.io.File;
 import java.util.List;
 
-@CommandInfo(name = "pnpm", description = "execute pnpm commands", permission = "bukkitjs.pnpm")
-public class PNPMCommand extends UpdatedCommandExecutor {
+@CommandInfo(name = "npm", description = "execute npm commands", permission = "bukkitjs.npm")
+public class NPMCommand extends UpdatedCommandExecutor {
 
     @Getter
-    private final PNPM pnpm;
+    private final NPM npm;
 
-    public PNPMCommand() {
-        super();
-
-        File installedAt = new File(BukkitJS.get().getDataFolder(), "\\pnpm");
-
-        if(!installedAt.exists() && !installedAt.mkdirs()) {
-            throw new RuntimeException("Could not create PNPM directory");
-        }
-
-        if(!PNPMDownloader.isInstalled(installedAt)) {
-            PNPMDownloader.installPNPM(installedAt);
-        }
-
-        this.pnpm = new PNPM(new File(BukkitJS.get().getDataFolder(), "\\scripts"), installedAt);
+    public NPMCommand() {
+        this.npm = new NPM(new File(BukkitJS.get().getDataFolder(), "scripts\\node_modules"));
+        this.npm.setLogger(new NPMLog4jLogger());
     }
 
     @Override
@@ -51,7 +40,9 @@ public class PNPMCommand extends UpdatedCommandExecutor {
                 }
 
                 sender.sendMessage("§aInstalling " + pkg + "...");
-                pnpm.install((v) -> sender.sendMessage("§aInstalled " + pkg + "!"), pkg);
+                npm.getPackage(pkg)
+                        .await()
+                        .install((v) -> sender.sendMessage("§aInstalled " + pkg + "!"));
             }
             case "uninstall", "un" -> {
                 String pkg = args[1];
@@ -62,7 +53,8 @@ public class PNPMCommand extends UpdatedCommandExecutor {
                 }
 
                 sender.sendMessage("§aUninstalling " + pkg + "...");
-                pnpm.uninstall((v) -> sender.sendMessage("§cUninstalled " + pkg + "!"), pkg);
+                npm.getInstalledPackage(pkg)
+                        .uninstall((v) -> sender.sendMessage("§aUninstalled " + pkg + "!"));
             }
             default -> sender.sendMessage("§cUsage (PNPM): /pnpm <install/uninstall> <package>");
         }

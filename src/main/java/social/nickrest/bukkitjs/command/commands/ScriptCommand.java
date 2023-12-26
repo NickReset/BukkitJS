@@ -5,10 +5,7 @@ import social.nickrest.bukkitjs.BukkitJS;
 import social.nickrest.bukkitjs.command.updated.UpdatedCommandExecutor;
 import social.nickrest.bukkitjs.command.updated.data.CommandInfo;
 import social.nickrest.bukkitjs.js.JSPlugin;
-import social.nickrest.bukkitjs.js.pnpm.PNPM;
-import social.nickrest.bukkitjs.js.pnpm.PNPMDownloader;
 
-import java.io.File;
 import java.util.List;
 
 @CommandInfo(name = "script", permission = "bukkitjs.script")

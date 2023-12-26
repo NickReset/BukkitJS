@@ -53,6 +53,7 @@ public class JSEngineNode {
             }
 
             this.runtime.getExecutor(builder.toString()).executeVoid();
+            this.runtime.await();
         } catch (IOException | JavetException e) {
             handleError.accept(e);
         }

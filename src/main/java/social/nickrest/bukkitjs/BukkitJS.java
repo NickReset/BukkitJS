@@ -11,12 +11,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
-import social.nickrest.bukkitjs.command.commands.PNPMCommand;
+import social.nickrest.bukkitjs.command.commands.NPMCommand;
 import social.nickrest.bukkitjs.command.commands.ScriptCommand;
 import social.nickrest.bukkitjs.command.updated.CommandManager;
 import social.nickrest.bukkitjs.classloader.BukkitJSClassloader;
 import social.nickrest.bukkitjs.js.JSPlugin;
-import social.nickrest.bukkitjs.js.pnpm.PNPM;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -51,7 +50,7 @@ public final class BukkitJS extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         CommandManager.register(
-                new ScriptCommand(), new PNPMCommand()
+                new ScriptCommand(), new NPMCommand()
         );
 
         this.load(null);
@@ -203,10 +202,6 @@ public final class BukkitJS extends JavaPlugin implements Listener {
         }
 
         return null;
-    }
-
-    public PNPM getPNPM() {
-        return ((PNPMCommand) CommandManager.getCommand(PNPMCommand.class)).getPnpm();
     }
 
     public JSPlugin getScript(String name) {
